@@ -1,25 +1,26 @@
-import clsx from 'clsx';
-import { WhiteBlock } from '../../WhiteBlock';
-import { Button } from '../../Button';
-import { StepInfo } from '../../StepInfo';
+import clsx from 'clsx'
+import { WhiteBlock } from '../../WhiteBlock'
+import { Button } from '../../Button'
+import { StepInfo } from '../../StepInfo'
 
-import styles from './EnterNameStep.module.scss';
-import React from 'react';
-// import { MainContext } from '../../../pages';
+import styles from './EnterNameStep.module.scss'
+import React from 'react'
+import { MainContext } from '../../../pages'
 
 export const EnterNameStep = () => {
-  const [inputValue, setInputValue] = React.useState<string>('');
-  // const { onNextStep } = React.useContext(MainContext);
+  const { onNextStep, userData, setFieldValue } = React.useContext(MainContext)
+  const [inputValue, setInputValue] = React.useState<string>(userData.fullName)
 
-  const nextDisabled = !inputValue;
+  const nextDisabled = !inputValue
 
   const handleChangeInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
-  };
+    setInputValue(event.target.value)
+  }
 
   const onClickNextStep = () => {
-    // onNextStep();
-  };
+    setFieldValue('fullName', inputValue)
+    onNextStep()
+  }
 
   return (
     <div className={styles.block}>
@@ -43,5 +44,5 @@ export const EnterNameStep = () => {
         </Button>
       </WhiteBlock>
     </div>
-  );
-};
+  )
+}

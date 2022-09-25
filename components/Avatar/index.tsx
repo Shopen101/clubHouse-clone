@@ -9,6 +9,7 @@ interface AvatarProps {
   height: string
   className?: string
   isVoice?: boolean
+  letters?: string
 }
 
 export const Avatar: React.FC<AvatarProps> = ({
@@ -17,15 +18,21 @@ export const Avatar: React.FC<AvatarProps> = ({
   height,
   className,
   isVoice,
+  letters,
 }) => {
   return (
     <div
-      style={{ width, height, backgroundImage: `url(${src})` }}
+      style={{ width, height, backgroundImage: src ? `url(${src})` : '' }}
       className={clsx(
         styles.avatar,
         isVoice ? styles.avatarBorder : '',
         className,
         'd-ib',
-      )}></div>
+        {
+          [styles.emptyAvatar]: !src,
+        },
+      )}>
+      {!src ? letters : null}
+    </div>
   )
 }

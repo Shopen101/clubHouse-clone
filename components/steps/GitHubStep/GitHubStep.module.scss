@@ -32,6 +32,14 @@
   margin-right: 6px;
 }
 
+.button {
+  background: #24292e;
+
+  &:hover {
+    background: lighten(#24292e, 10);
+  }
+}
+
 .title {
   display: flex;
   align-items: center;

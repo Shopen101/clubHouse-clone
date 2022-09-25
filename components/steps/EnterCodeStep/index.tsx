@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { WhiteBlock } from '../../WhiteBlock'
 import { Button } from '../../Button'
 import { StepInfo } from '../../StepInfo'
-// import Axios from '../../../core/axios';
+import { Axios } from '../../../core/axios'
 
 import styles from './EnterPhoneStep.module.scss'
 
@@ -30,23 +30,26 @@ export const EnterCodeStep = () => {
     }
   }
 
-  // const onSubmit = async () => {
-  //   try {
-  //     setIsLoading(true);
-  //     await Axios.get('/todos');
-  //     router.push('/rooms');
-  //   } catch (error) {
-  //     alert('Ошибка при активации!');
-  //   }
+  const onSubmit = async () => {
+    try {
+      setIsLoading(true)
+      await Axios.get('/todos')
+      router.push('/rooms')
+    } catch (error) {
+      alert('Ошибка при активации!')
+    }
 
-  //   setIsLoading(false);
-  // };
+    setIsLoading(false)
+  }
 
   return (
     <div className={styles.block}>
       {!isLoading ? (
         <>
-          <StepInfo icon="/static/numbers.png" title="Enter your activate code" />
+          <StepInfo
+            icon="/static/numbers.png"
+            title="Enter your activate code"
+          />
           <WhiteBlock className={clsx('m-auto mt-30', styles.whiteBlock)}>
             <div className={clsx('mb-30', styles.codeInput)}>
               {codes.map((code, index) => (
@@ -61,8 +64,7 @@ export const EnterCodeStep = () => {
                 />
               ))}
             </div>
-            <Button disabled={nextDisabled}>
-              {/* onClick={onSubmit} */}
+            <Button disabled={nextDisabled} onClick={onSubmit}>
               Next
               <img className="d-ib ml-10" src="/static/arrow.svg" />
             </Button>
