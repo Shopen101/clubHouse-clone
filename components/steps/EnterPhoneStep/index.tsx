@@ -27,7 +27,7 @@ export const EnterPhoneStep = () => {
   const onSubmit = async () => {
     try {
       setIsLoading(true)
-      await Axios.get('/auth/sms')
+      await Axios.get(`/auth/sms?phone=${values.value}`)
       setFieldValue('phone', values.value)
       onNextStep()
     } catch (error) {

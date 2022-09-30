@@ -27,15 +27,18 @@ export const EnterCodeStep = () => {
 
     if (event.target.nextSibling) {
       ;(event.target.nextSibling as HTMLInputElement).focus()
+    } else {
+      onSubmit([...codes, value].join(''))
     }
   }
 
-  const onSubmit = async () => {
+  const onSubmit = async (code?: string) => {
     try {
       setIsLoading(true)
-      await Axios.get('/todos')
+      await Axios.get(`/auth/sms/activate?code=${code}`)
       router.push('/rooms')
     } catch (error) {
+      setCodes(['', '', '', ''])
       alert('Ошибка при активации!')
     }
 
@@ -51,7 +54,7 @@ export const EnterCodeStep = () => {
             title="Enter your activate code"
           />
           <WhiteBlock className={clsx('m-auto mt-30', styles.whiteBlock)}>
-            <div className={clsx('mb-30', styles.codeInput)}>
+            <div className={styles.codeInput}>
               {codes.map((code, index) => (
                 <input
                   key={index}
@@ -64,10 +67,10 @@ export const EnterCodeStep = () => {
                 />
               ))}
             </div>
-            <Button disabled={nextDisabled} onClick={onSubmit}>
+            {/* <Button disabled={nextDisabled} onClick={onSubmit}>
               Next
               <img className="d-ib ml-10" src="/static/arrow.svg" />
-            </Button>
+            </Button> */}
           </WhiteBlock>
         </>
       ) : (

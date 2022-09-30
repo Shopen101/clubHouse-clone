@@ -1,7 +1,7 @@
 import passport from 'passport'
 import { Strategy as GithubStrategy } from 'passport-github2'
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
-import { createJwtToken } from '../utils/createJwtToken'
+import { createJwtToken } from '../../utils/createJwtToken'
 import { UserData } from '../../pages/index'
 
 var User = require('../../models').User

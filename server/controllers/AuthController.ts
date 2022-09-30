@@ -1,8 +1,8 @@
 import express from 'express'
-// import { Code } from '../../models'
-var Code = require('../../models').Code
+import { Code, User } from '../../models'
+// var Code = require('../../models').Code
 
-import { generateRandomCode } from '../utils/generateRandomCode'
+import { generateRandomCode } from '../../utils/generateRandomCode'
 
 class AuthController {
   getMe(req: express.Request, res: express.Response) {
@@ -22,10 +22,9 @@ class AuthController {
     const userId = req.user.id
     const smsCode = req.query.code
     const whereQuery = { code: smsCode, user_id: userId }
-    console.log('params', { smsCode, userId })
 
     if (!smsCode) {
-      return res.status(400).send()
+      return res.status(400).send({ message: 'Введите код активации' })
     }
 
     try {
@@ -35,11 +34,11 @@ class AuthController {
 
       if (findCode) {
         await Code.destroy({ where: whereQuery })
-
-        return res.status(201).send()
+        await User.update({ isActive: 1 }, { where: { id: userId } })
+        return res.status(200).send()
       }
 
-      throw new Error('User not found')
+      return res.status(500).json({ message: 'Код не найден' })
     } catch (error) {
       res.status(500).json({
         message: 'Ошибка при активации аккаунта',
@@ -53,7 +52,9 @@ class AuthController {
     const smsCode = generateRandomCode()
 
     if (!phone) {
-      return res.status(400).send()
+      return res.status(400).send({
+        message: 'Номер телефона не указан!',
+      })
     }
 
     try {

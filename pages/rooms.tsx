@@ -4,6 +4,8 @@ import { ConversationCard } from '../components/ConversationCard'
 import { Header } from '../components/Header'
 import Link from 'next/link'
 import { Axios } from '../core/axios'
+import { UserApi } from '../api/UserApi'
+import { checkAuth } from '../utils/checkAuth'
 
 export default function RoomsPage({ rooms }) {
   return (
@@ -35,20 +37,32 @@ export default function RoomsPage({ rooms }) {
   )
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ctx => {
   try {
-    const { data } = await Axios.get('/rooms.json')
+    // const { data } = await Axios.get('/rooms.json')
+    const user = await checkAuth(ctx)
+
+    if (!user) {
+      return {
+        props: {},
+        redirect: {
+          permanent: false,
+          destination: '/',
+        },
+      }
+    }
 
     return {
       props: {
-        rooms: data,
+        user,
+        rooms: [],
       },
     }
   } catch (error) {
     console.log(error)
 
     return {
-      props: { room: [] },
+      props: { rooms: [] },
     }
   }
 }

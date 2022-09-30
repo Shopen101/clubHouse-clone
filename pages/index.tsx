@@ -8,6 +8,7 @@ import { GitHubStep } from '../components/steps/GitHubStep'
 import { EnterCodeStep } from '../components/steps/EnterCodeStep'
 import { ChooseAvatarStep } from '../components/steps/ChooseAvatarStep'
 import { EnterPhoneStep } from '../components/steps/EnterPhoneStep'
+import { checkAuth } from '../utils/checkAuth'
 
 const stepsComponent = {
   0: WelcomeStep,
@@ -88,12 +89,12 @@ export default function Home() {
     }
   }, [])
 
-  // React.useEffect(() => {
-  //   window.localStorage.setItem(
-  //     'userData',
-  //     userData ? JSON.stringify(userData) : '',
-  //   )
-  // }, [userData])
+  React.useEffect(() => {
+    window.localStorage.setItem(
+      'userData',
+      userData ? JSON.stringify(userData) : '',
+    )
+  }, [userData])
 
   return (
     <MainContext.Provider
@@ -101,4 +102,24 @@ export default function Home() {
       <Step data-cytue />
     </MainContext.Provider>
   )
+}
+
+export const getServerSideProps = async ctx => {
+  try {
+    const user = await checkAuth(ctx)
+
+    if (user) {
+      return {
+        props: {},
+        redirect: {
+          permanent: false,
+          destination: '/rooms',
+        },
+      }
+    }
+
+    return { props: {} }
+  } catch (error) {
+    console.log(error)
+  }
 }
