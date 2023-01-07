@@ -14,6 +14,7 @@ import './core/db'
 
 import { passport } from './core/passport'
 import AuthController from './controllers/AuthController'
+import RoomController from './controllers/RoomController'
 import { uploader } from './core/uploader'
 sharp.cache({ files: 0 })
 
@@ -78,6 +79,27 @@ app.get(
   '/auth/sms/activate',
   passport.authenticate('jwt', { session: false }),
   AuthController.activate,
+)
+
+app.get(
+  '/rooms',
+  passport.authenticate('jwt', { session: false }),
+  RoomController.index,
+)
+app.post(
+  '/rooms',
+  passport.authenticate('jwt', { session: false }),
+  RoomController.create,
+)
+app.get(
+  '/rooms/:id',
+  passport.authenticate('jwt', { session: false }),
+  RoomController.show,
+)
+app.delete(
+  '/rooms/:id',
+  passport.authenticate('jwt', { session: false }),
+  RoomController.delete,
 )
 
 app.listen(3001, () => {

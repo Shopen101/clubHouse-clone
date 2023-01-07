@@ -3,18 +3,43 @@ import { Button } from '../components/Button'
 import { ConversationCard } from '../components/ConversationCard'
 import { Header } from '../components/Header'
 import Link from 'next/link'
-import { Axios } from '../core/axios'
 import { UserApi } from '../api/UserApi'
 import { checkAuth } from '../utils/checkAuth'
+import { StartRoomModal } from '../components/StartRoomModal'
+import { Api } from '../api'
+import { Room, RoomApi, RoomType } from '../api/RoomApi'
+import { GetServerSideProps, NextPage } from 'next'
+import { useRouter } from 'next/router'
+import { addRoom } from '../redux/slices/roomSlice'
+import { useDispatch } from 'react-redux'
 
-export default function RoomsPage({ rooms }) {
+interface RoomPageProps {
+  rooms: Room[]
+}
+
+const RoomPage: NextPage<RoomPageProps> = ({ rooms }) => {
+  const [visibleModal, setVisibleModal] = React.useState<Boolean>(false)
+  const dispatch = useDispatch()
+
   return (
     <>
       <Header />
       <div className="container">
         <div className="mt-40 d-flex align-items-center justify-content-between">
           <h1>All conversations</h1>
-          <Button color="green">+ Start room</Button>
+          <Button
+            onClick={() =>
+              dispatch(
+                addRoom({ id: 1, title: '', listenersCount: 0, speakers: [] }),
+              )
+            }
+            // setVisibleModal(true)
+            color="green">
+            + Start room
+          </Button>
+          {visibleModal && (
+            <StartRoomModal onClose={() => setVisibleModal(false)} />
+          )}
         </div>
         <div className="grid mt-30">
           {rooms.map(obj => {
@@ -23,9 +48,8 @@ export default function RoomsPage({ rooms }) {
                 <a>
                   <ConversationCard
                     title={obj.title}
-                    listenersCount={obj.guestsCount}
-                    speakers={obj.avatars}
-                    guests={obj.guests}
+                    listenersCount={obj.listenersCount}
+                    speakers={obj.speakers}
                   />
                 </a>
               </Link>
@@ -37,9 +61,10 @@ export default function RoomsPage({ rooms }) {
   )
 }
 
-export const getServerSideProps = async ctx => {
+export const getServerSideProps: GetServerSideProps<
+  RoomPageProps
+> = async ctx => {
   try {
-    // const { data } = await Axios.get('/rooms.json')
     const user = await checkAuth(ctx)
 
     if (!user) {
@@ -51,11 +76,11 @@ export const getServerSideProps = async ctx => {
         },
       }
     }
+    const rooms = await Api(ctx).getRooms()
 
     return {
       props: {
-        user,
-        rooms: [],
+        rooms,
       },
     }
   } catch (error) {
@@ -66,3 +91,5 @@ export const getServerSideProps = async ctx => {
     }
   }
 }
+
+export default RoomPage

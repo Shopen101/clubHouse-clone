@@ -1,4 +1,6 @@
 import Head from 'next/head'
+import { makeStore } from '../redux/store'
+import withRedux from 'next-redux-wrapper'
 import '../styles/globals.scss'
 
 function App({ Component, pageProps }) {
@@ -13,4 +15,4 @@ function App({ Component, pageProps }) {
   )
 }
 
-export default App
+export default withRedux(makeStore)(App)

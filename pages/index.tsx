@@ -112,7 +112,7 @@ export default function Home() {
 export const getServerSideProps = async ctx => {
   try {
     const user = await checkAuth(ctx)
-
+ 
     if (user) {
       return {
         props: {},

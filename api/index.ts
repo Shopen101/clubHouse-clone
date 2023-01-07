@@ -2,9 +2,12 @@ import Cookies from 'nookies'
 import { GetServerSidePropsContext } from 'next'
 import axios from 'axios'
 import { UserApi } from './UserApi'
+import { RoomApi } from './RoomApi'
+
+type ApiReturnType = ReturnType<typeof UserApi> & ReturnType<typeof RoomApi>
 
 // TODO: Типизировать
-export const Api = (ctx: GetServerSidePropsContext) => {
+export const Api = (ctx: GetServerSidePropsContext): ApiReturnType => {
   const cookies = Cookies.get(ctx)
   const token = cookies.token
 
@@ -17,5 +20,6 @@ export const Api = (ctx: GetServerSidePropsContext) => {
 
   return {
     ...UserApi(instance),
+    ...RoomApi(instance),
   }
 }

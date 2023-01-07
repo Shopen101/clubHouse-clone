@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import { Api } from '../../api'
 import { BackButton } from '../../components/BackButton'
 import { Button } from '../../components/Button'
 import { Header } from '../../components/Header'
@@ -19,12 +20,11 @@ export default function RoomPage({ room }) {
 
 export const getServerSideProps = async ctx => {
   try {
-    const { data } = await Axios.get('/rooms.json')
     const {
       query: { id },
     } = ctx
 
-    const room = data.find(obj => obj.id === id)
+    const room = await Api(ctx).getRoom(id)
 
     return {
       props: {

@@ -9,21 +9,10 @@ interface ConversationCard {
   title: string
   speakers: string[]
   listenersCount: number
-  guests: string[]
+  guests?: string[]
 }
-
-export const ConversationCard: React.FC<ConversationCard> = ({
-  title,
-  speakers = [],
-  listenersCount,
-  guests = [],
-}) => {
-  return (
-    <div className={clsx(whiteBlockStyles.block, styles.card, 'mb-30')}>
-      <h4 className={styles.title}>{title}</h4>
-      <div className={clsx('d-flex mt-10', styles.content)}>
-        <div className={styles.avatars}>
-          {speakers.map((user, i) => (
+{
+  /* {speakers?.map((user, i) => (
             <Avatar
               key={user}
               width="45px"
@@ -35,8 +24,19 @@ export const ConversationCard: React.FC<ConversationCard> = ({
                   : ''
               }
             />
-          ))}
-        </div>
+          ))} */
+}
+export const ConversationCard: React.FC<ConversationCard> = ({
+  title,
+  speakers = [],
+  listenersCount,
+  guests = [],
+}) => {
+  return (
+    <div className={clsx(whiteBlockStyles.block, styles.card, 'mb-30')}>
+      <h4 className={styles.title}>{title}</h4>
+      <div className={clsx('d-flex mt-10', styles.content)}>
+        <div className={styles.avatars}></div>
         <div className={clsx(styles.info, 'ml-10')}>
           <ul className={styles.users}>
             {guests.map((user, i) => (
@@ -69,7 +69,7 @@ export const ConversationCard: React.FC<ConversationCard> = ({
                 width={12}
                 height={12}
               />{' '}
-              {speakers.length}
+              {speakers?.length}
             </li>
           </ul>
         </div>
