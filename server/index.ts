@@ -5,6 +5,8 @@ import sharp from 'sharp'
 import fs from 'fs'
 import appRoot from 'app-root-path'
 import { nanoid } from 'nanoid'
+import socket from 'socket.io'
+import { createServer } from 'http'
 
 dotenv.config({
   path: 'server/.env',
@@ -19,6 +21,12 @@ import { uploader } from './core/uploader'
 sharp.cache({ files: 0 })
 
 const app = express()
+const server = createServer(app)
+const io = socket(server, {
+  cors: {
+    origin: '*',
+  },
+})
 
 app.use(cors())
 app.use(express.json())

@@ -1,9 +1,9 @@
 import Head from 'next/head'
-import { makeStore } from '../redux/store'
-import withRedux from 'next-redux-wrapper'
+import { wrapper } from '../redux/store'
 import '../styles/globals.scss'
+import { Provider } from 'react-redux'
 
-function App({ Component, pageProps }) {
+function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
@@ -15,4 +15,4 @@ function App({ Component, pageProps }) {
   )
 }
 
-export default withRedux(makeStore)(App)
+export default wrapper.withRedux(MyApp)

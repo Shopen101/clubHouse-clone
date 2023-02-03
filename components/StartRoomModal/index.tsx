@@ -2,12 +2,14 @@ import clsx from 'clsx'
 import React from 'react'
 // import { Room, RoomType } from '../../api/RoomApi'
 // import { useAsyncAction } from '../../hooks/useAction'
-// import { fetchCreateRoom } from '../../redux/slices/roomsSlice'
 import { Button } from '../Button'
 import { Axios } from '../../core/axios'
 import styles from './StartRoomModal.module.scss'
 import { useRouter } from 'next/router'
 import { Room, RoomApi, RoomType } from '../../api/RoomApi'
+import { fetchCreateRoom } from '../../redux/slices/roomSlice'
+import { useDispatch } from 'react-redux'
+import { useAsyncAction } from '../../hooks/useAction'
 
 interface StartRoomModalProps {
   onClose: () => void
@@ -17,20 +19,16 @@ export const StartRoomModal: React.FC<StartRoomModalProps> = ({ onClose }) => {
   const router = useRouter()
   const [title, setTitle] = React.useState<string>('')
   const [type, setType] = React.useState<RoomType>('open')
+  // const dispatch = useDispatch<any>()
+  const createRoom = useAsyncAction<any, Room>(fetchCreateRoom)
 
   const onSubmit = async () => {
-    try {
-      if (!title) {
-        return alert('Укажите заголовок комнаты!')
-      }
-      const room: Room = await RoomApi(Axios).createRoom({
-        title,
-        type,
-      })
-      router.push(`/rooms/${room.id}`)
-    } catch (error) {
-      alert('Ошибка при создании комнаты!')
+    if (!title) {
+      return alert('Укажите заголовок комнаты!')
     }
+    // const room = dispatch(fetchCreateRoom({ title, type }))
+    const data: Room = await createRoom({ title, type })
+    router.push(`/rooms/${data.id}`)
   }
 
   return (
@@ -107,7 +105,7 @@ export const StartRoomModal: React.FC<StartRoomModalProps> = ({ onClose }) => {
               src="/static/celebration.png"
               alt="Celebration"
             />
-            Let's go
+            Lets go
           </Button>
         </div>
       </div>

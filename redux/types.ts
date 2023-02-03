@@ -1,7 +1,7 @@
 import { RoomsSliceState } from './slices/roomSlice'
-// import { UserSliceState } from './slices/userSlice';
+import { UserSliceState } from './slices/userSlice';
 
 export type RootState = {
-  // user: UserSliceState;
+  user: UserSliceState;
   rooms: RoomsSliceState
 };

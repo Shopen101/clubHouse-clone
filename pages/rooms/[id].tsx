@@ -5,6 +5,8 @@ import { Button } from '../../components/Button'
 import { Header } from '../../components/Header'
 import { Room } from '../../components/Room'
 import { Axios } from '../../core/axios'
+import { wrapper } from '../../redux/store'
+import { checkAuth } from '../../utils/checkAuth'
 
 export default function RoomPage({ room }) {
   return (
@@ -18,13 +20,22 @@ export default function RoomPage({ room }) {
   )
 }
 
-export const getServerSideProps = async ctx => {
+export const getServerSideProps = wrapper.getServerSideProps(async ctx => {
   try {
-    const {
-      query: { id },
-    } = ctx
+    const user = await checkAuth(ctx)
 
-    const room = await Api(ctx).getRoom(id)
+    if (!user) {
+      return {
+        props: {},
+        redirect: {
+          permanent: false,
+          destination: '/',
+        },
+      }
+    }
+
+    const roomId = ctx.query.id
+    const room = await Api(ctx).getRoom(roomId as string)
 
     return {
       props: {
@@ -32,10 +43,13 @@ export const getServerSideProps = async ctx => {
       },
     }
   } catch (error) {
-    console.log(error)
-
+    console.log('ERROR!')
     return {
-      props: { room: [] },
+      props: {},
+      redirect: {
+        destination: '/rooms',
+        permanent: false,
+      },
     }
   }
-}
+})
