@@ -5,11 +5,13 @@ import { WhiteBlock } from '../../WhiteBlock'
 import { Button } from '../../Button'
 import { StepInfo } from '../../StepInfo'
 import { Axios } from '../../../core/axios'
+import { MainContext } from '../../../pages';
 
 import styles from './EnterPhoneStep.module.scss'
 
 export const EnterCodeStep = () => {
   const router = useRouter()
+  const { userData } = React.useContext(MainContext)
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [codes, setCodes] = React.useState(['', '', '', ''])
   const nextDisabled = codes.some(v => !v)
@@ -32,10 +34,13 @@ export const EnterCodeStep = () => {
     }
   }
 
-  const onSubmit = async (code?: string) => {
+  const onSubmit = async (code: string) => {
     try {
       setIsLoading(true)
-      await Axios.get(`/auth/sms/activate?code=${code}`)
+      await Axios.post(`/auth/sms/activate`, {
+        code,
+        user: userData,
+      })
       router.push('/rooms')
     } catch (error) {
       setCodes(['', '', '', ''])

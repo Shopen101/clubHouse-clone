@@ -28,6 +28,39 @@ const io = socket(server, {
   },
 })
 
+const rooms: Record<string, any> = {}
+
+io.on('connection', socket => {
+  // просто оповвещаем, что к сокетам подключились
+  console.log('Connected to socket!', socket.id)
+
+  socket.on('CLIENT@ROOMS:JOIN', ({ user, roomId }) => {
+    // по команде, которая начинается с CLIENT будет понятно, что запрос прислал клиент
+    // оповещаем тут остальных людей в комнате, что новый чел зашёл
+
+    socket.join(`room/${roomId}`) // подключаемся в конкретную комнату
+    // тут имя начинается с SERVER - чтобы было понятно, что ответ прислал сервер
+    // broadcast значит ответ отправь всем, кроме меня в комнате
+    rooms[socket.id] = { roomId, user }
+    io.in(`room/${roomId}`).emit(
+      'SERVER@ROOMS:JOIN',
+      Object.values(rooms)
+        .filter(obj => obj.roomId === roomId)
+        .map(obj => obj.user),
+    )
+  })
+
+  socket.on('disconnect', () => {
+    // юзверь отключился от сокетов, типо вышел с комнаты
+    if (rooms[socket.id]) {
+      const { roomId, user } = rooms[socket.id]
+      socket.broadcast.to(`room/${roomId}`).emit('SERVER@ROOMS:LEAVE', user)
+      console.log('user disconnected')
+      delete rooms[socket.id]
+    }
+  })
+})
+
 app.use(cors())
 app.use(express.json())
 
@@ -83,7 +116,7 @@ app.get(
   AuthController.sendSms,
 )
 
-app.get(
+app.post(
   '/auth/sms/activate',
   passport.authenticate('jwt', { session: false }),
   AuthController.activate,
@@ -110,6 +143,6 @@ app.delete(
   RoomController.delete,
 )
 
-app.listen(3001, () => {
+server.listen(3001, () => {
   console.log('Server runned')
 })

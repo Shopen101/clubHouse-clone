@@ -20,10 +20,10 @@ class AuthController {
 
   async activate(req: express.Request, res: express.Response) {
     const userId = req.user.id
-    const smsCode = req.query.code
-    const whereQuery = { code: smsCode, user_id: userId }
+    const { code, user } = req.body
+    const whereQuery = { code, user_id: userId }
 
-    if (!smsCode) {
+    if (!code) {
       return res.status(400).send({ message: 'Введите код активации' })
     }
 
@@ -34,7 +34,7 @@ class AuthController {
 
       if (findCode) {
         await Code.destroy({ where: whereQuery })
-        await User.update({ isActive: 1 }, { where: { id: userId } })
+        await User.update({ ...user, isActive: 1 }, { where: { id: userId } })
         return res.status(200).send()
       }
 

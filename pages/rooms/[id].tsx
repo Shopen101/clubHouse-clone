@@ -1,10 +1,10 @@
-import { useRouter } from 'next/router'
+import React from 'react'
+
 import { Api } from '../../api'
 import { BackButton } from '../../components/BackButton'
 import { Button } from '../../components/Button'
 import { Header } from '../../components/Header'
 import { Room } from '../../components/Room'
-import { Axios } from '../../core/axios'
 import { wrapper } from '../../redux/store'
 import { checkAuth } from '../../utils/checkAuth'
 
@@ -40,6 +40,7 @@ export const getServerSideProps = wrapper.getServerSideProps(async ctx => {
     return {
       props: {
         room,
+        user,
       },
     }
   } catch (error) {
