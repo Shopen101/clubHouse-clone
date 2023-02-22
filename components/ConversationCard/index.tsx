@@ -4,44 +4,43 @@ import { Avatar } from '../Avatar'
 import styles from './ConversationCard.module.scss'
 import whiteBlockStyles from '../WhiteBlock/WhiteBlock.module.scss'
 import clsx from 'clsx'
+import { UserData } from '../../pages'
 
 interface ConversationCard {
   title: string
-  speakers: string[]
+  speakers: UserData[]
   listenersCount: number
-  guests?: string[]
 }
-{
-  /* {speakers?.map((user, i) => (
+
+export const ConversationCard: React.FC<ConversationCard> = ({
+  title,
+  speakers = [],
+  listenersCount,
+}) => {
+  return (
+    <div className={clsx(whiteBlockStyles.block, styles.card, 'mb-30')}>
+      <h4 className={styles.title}>{title}</h4>
+      <div className={clsx('d-flex mt-10', styles.content)}>
+        <div className={styles.avatars}>
+          {speakers.map((user, i) => (
             <Avatar
-              key={user}
+              key={user.avatarUrl}
               width="45px"
               height="45px"
-              src={user}
+              src={user.avatarUrl}
               className={
                 speakers.length > 1 && i === speakers.length - 1
                   ? 'lastAvatar'
                   : ''
               }
             />
-          ))} */
-}
-export const ConversationCard: React.FC<ConversationCard> = ({
-  title,
-  speakers = [],
-  listenersCount,
-  guests = [],
-}) => {
-  return (
-    <div className={clsx(whiteBlockStyles.block, styles.card, 'mb-30')}>
-      <h4 className={styles.title}>{title}</h4>
-      <div className={clsx('d-flex mt-10', styles.content)}>
-        <div className={styles.avatars}></div>
+          ))}
+        </div>
         <div className={clsx(styles.info, 'ml-10')}>
           <ul className={styles.users}>
-            {guests.map((user, i) => (
-              <li key={i}>
-                {user}{' '}
+            {speakers.map((user, i) => (
+              <li key={user.id}>
+                {user.fullName}{' '}
                 <img
                   src="/static/cloud.png"
                   alt="Cloud"
@@ -69,7 +68,7 @@ export const ConversationCard: React.FC<ConversationCard> = ({
                 width={12}
                 height={12}
               />{' '}
-              {speakers?.length}
+              {speakers.length}
             </li>
           </ul>
         </div>

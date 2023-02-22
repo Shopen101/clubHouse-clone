@@ -15,8 +15,9 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectRooms } from '../redux/selectors'
 import { Store } from '@reduxjs/toolkit'
 import { wrapper } from '../redux/store'
-import { setRooms } from '../redux/slices/roomSlice'
+import { setRooms, setRoomSpeakers } from '../redux/slices/roomSlice'
 import { setUserData } from '../redux/slices/userSlice'
+import { useSocket } from '../hooks/useSocket'
 
 interface RoomPageProps {
   data: Room[]
@@ -26,6 +27,15 @@ const RoomPage: NextPage<RoomPageProps> = ({ data }) => {
   const [visibleModal, setVisibleModal] = React.useState<Boolean>(false)
   const dispatch = useDispatch()
   const rooms = useSelector(selectRooms)
+  const socket = useSocket()
+
+  React.useEffect(() => {
+    socket.on('SERVER@ROOMS:HOME', ({ speakers, roomId }) => {
+      console.log('SERVER@ROOMS:HOME', { speakers, roomId })
+
+      dispatch(setRoomSpeakers({ speakers, roomId }))
+    })
+  }, [])
 
   return (
     <>
@@ -83,9 +93,8 @@ export const getServerSideProps: GetServerSideProps =
       }
 
       const rooms = await Api(ctx).getRooms()
-      
-      ctx.store.dispatch(setRooms(rooms))
 
+      ctx.store.dispatch(setRooms(rooms))
 
       return {
         props: {},

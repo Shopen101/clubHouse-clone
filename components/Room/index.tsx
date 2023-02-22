@@ -11,7 +11,9 @@ import { Axios } from '../../core/axios'
 import { useRouter } from 'next/router'
 import { useSelector } from 'react-redux'
 import { selectUserData } from '../../redux/selectors'
+import Peer from 'simple-peer'
 import { UserData } from '../../pages'
+import { useSocket } from '../../hooks/useSocket'
 
 interface RoomProps {
   title: string
@@ -27,25 +29,24 @@ export const Room: React.FC<RoomProps> = ({ title }) => {
   const [users, setUsers] = React.useState<UserData[]>([])
   const router = useRouter()
   const roomId = router.query.id
-  const socketRef = React.useRef<Socket<DefaultEventsMap, DefaultEventsMap>>()
+  const socket = useSocket()
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
-      socketRef.current = io('http://localhost:3001') // определили куда отправляем сокет-запросы
+      socket = io('http://localhost:3001') // определили куда отправляем сокет-запросы
 
-      window.socket = socketRef.current
+      window.socket = socket
 
-      socketRef.current.emit('CLIENT@ROOMS:JOIN', {
+      socket.emit('CLIENT@ROOMS:JOIN', {
         user,
         roomId,
       }) // присоединяем текущего юзверя к комнате, в которую он вошёл(на которую кликнул)
 
-      socketRef.current.on('SERVER@ROOMS:LEAVE', (user: UserData) => {
+      socket.on('SERVER@ROOMS:LEAVE', (user: UserData) => {
         setUsers(prev => prev.filter(obj => obj.id !== user.id))
       })
 
-      socketRef.current.on('SERVER@ROOMS:JOIN', allUsers => {
-        console.log(allUsers)
+      socket.on('SERVER@ROOMS:JOIN', allUsers => {
         setUsers(allUsers)
       }) // получаем ответ от сервера, когда другой юзверь законнектился к комнате
 
@@ -53,7 +54,7 @@ export const Room: React.FC<RoomProps> = ({ title }) => {
     }
 
     return () => {
-      socketRef.current.disconnect()
+      socket.disconnect()
     }
   }, [])
 
