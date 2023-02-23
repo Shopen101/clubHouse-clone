@@ -51,6 +51,18 @@ io.on('connection', socket => {
     Room.update({ speakers }, { where: { id: roomId } })
   })
 
+  socket.on('CLIENT@ROOMS:CALL', ({ user, roomId, signal }) => {
+    socket.broadcast // отправляем свой сигнал(номер телефона) всем ребятам в комнате(кроме отправителя), что к вам хочет подключиться кто-то(тот самый отправитель)
+      .to(`room/${roomId}`)
+      .emit('SERVER@ROOMS:CALL', { user, signal })
+  })
+
+  socket.on('CLIENT@ROOMS:ANSWER', ({ targetUserId, roomId, signal }) => {
+    socket.broadcast
+      .to(`room/${roomId}`)
+      .emit('SERVER@ROOMS:ANSWER', { targetUserId, signal })
+  })
+
   socket.on('disconnect', () => {
     // юзверь отключился от сокетов, типо вышел с комнаты
     if (rooms[socket.id]) {

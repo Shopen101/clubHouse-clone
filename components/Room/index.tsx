@@ -33,6 +33,66 @@ export const Room: React.FC<RoomProps> = ({ title }) => {
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
+      navigator.mediaDevices
+        .getUserMedia({
+          audio: true,
+        })
+        .then(stream => {
+          const peerIncome = new Peer({
+            initiator: true,
+            trickle: false,
+            stream,
+          })
+
+          peerIncome.on('signal', signal => {
+            // здесь мы отправляем свой сигнал всем юзверям в комнате(мы вошли в хату)
+            // peerIncome - это инстанс, который у каждого юзверя отвечает за передачу голоса(рот), а peerOutcome за принятие(уши)
+            socket.emit('CLIENT@ROOMS:CALL', {
+              user,
+              roomId,
+              signal,
+            })
+          })
+
+          socket.on('SERVER@ROOMS:CALL', ({ user: callerUser, signal }) => {
+            console.log('сигнал пришёл', { callerUser, signal })
+
+            const peerOutcome = new Peer({
+              // инстанс для прослушивания
+              initiator: false,
+              trickle: false,
+              stream,
+            })
+
+            peerOutcome.signal(signal) // помещаем в НАШИ уши сигнал того чела, который ток что вошёл(чтобы его слышать)
+
+            peerOutcome
+              .on('signal', signal => {
+                console.log('123')
+                socket.emit('CLIENT@ROOMS:ANSWER', {
+                  targetUserId: callerUser.id,
+                  roomId,
+                  signal,
+                })
+              })
+              .on('stream', stream2 => {
+                document.querySelector('audio').srcObject = stream2
+                document.querySelector('audio').play()
+                console.log('STREAM пошёл')
+              })
+          })
+
+          socket.on('SERVER@ROOMS:ANSWER', ({ targetUserId, signal }) => {
+            if (user.id === targetUserId) {
+              peerIncome.signal(signal)
+              console.log('МЫ ОТВЕТИЛИ ЮЗВЕРЮ -->', targetUserId)
+            }
+          })
+        })
+        .catch(() => {
+          console.error('Нет доступа к микрофону')
+        })
+
       socket = io('http://localhost:3001') // определили куда отправляем сокет-запросы
 
       window.socket = socket
@@ -52,15 +112,11 @@ export const Room: React.FC<RoomProps> = ({ title }) => {
 
       // setUsers(prev => [...prev, user])
     }
-
-    return () => {
-      socket.disconnect()
-    }
   }, [])
 
   return (
     <div className={styles.wrapper}>
-      {/* <audio controls /> */}
+      <audio controls />
       <div className="d-flex align-items-center justify-content-between">
         <h2>{title}</h2>
         <div
