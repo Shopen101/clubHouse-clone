@@ -64,7 +64,7 @@ export const Room: React.FC<RoomProps> = ({ title }) => {
               stream,
             })
 
-            peerOutcome.signal(signal) // помещаем в НАШИ уши сигнал того чела, который ток что вошёл(чтобы его слышать)
+            peerOutcome.signal(signal) // помещаем в НАШИ уши сигнал того чела, который ток что вошёл(чтобы его слышать) *позвонил на druga signal
 
             peerOutcome
               .on('signal', signal => {
@@ -74,7 +74,7 @@ export const Room: React.FC<RoomProps> = ({ title }) => {
                   roomId,
                   signal,
                 })
-              })
+              })  
               .on('stream', stream2 => {
                 document.querySelector('audio').srcObject = stream2
                 document.querySelector('audio').play()
