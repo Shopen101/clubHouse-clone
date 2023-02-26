@@ -24,6 +24,8 @@ type User = {
   avatarUrl: string
 }
 
+// TODO: реализовать destroy webRtc соединения
+
 export const Room: React.FC<RoomProps> = ({ title }) => {
   const user = useSelector(selectUserData)
   const [users, setUsers] = React.useState<UserData[]>([])
@@ -33,59 +35,79 @@ export const Room: React.FC<RoomProps> = ({ title }) => {
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
+      // ниже вся логика webRtc соединения
       navigator.mediaDevices
         .getUserMedia({
           audio: true,
         })
         .then(stream => {
-          const peerIncome = new Peer({
-            initiator: true,
-            trickle: false,
-            stream,
+          // 1. Оповещаем всех юзверей в комнате, что вошёл новый юзер и отправляем им свои данные(id, ФИО и прочее)
+          socket.emit('CLIENT@ROOMS:JOIN', {
+            user,
+            roomId,
           })
 
-          peerIncome.on('signal', signal => {
-            // здесь мы отправляем свой сигнал всем юзверям в комнате(мы вошли в хату)
-            // peerIncome - это инстанс, который у каждого юзверя отвечает за передачу голоса(рот), а peerOutcome за принятие(уши)
-            socket.emit('CLIENT@ROOMS:CALL', {
-              user,
-              roomId,
-              signal,
-            })
-          })
+          // 2. на наше первое действие получаем ответ в виде массива всех юзверей, которые теперь есть в комнате(там теперь все кто был + мы)
+          socket.on('SERVER@ROOMS:JOIN', allUsers => {
+            console.log('Список пользователей -> ', allUsers)
+            // в текущей реализации 2 юзера имеют возможность созваниваться друг с другом.
+            setUsers(allUsers) // сейвим в стейт для отображения юзера в интерфейсе приложения
+            const targetUser = allUsers.find(man => man.id !== user.id) // targetUser - это другой юзер(ну то есть НЕ ты) и ему нужно позвонить
 
-          socket.on('SERVER@ROOMS:CALL', ({ user: callerUser, signal }) => {
-            console.log('сигнал пришёл', { callerUser, signal })
-
-            const peerOutcome = new Peer({
-              // инстанс для прослушивания
-              initiator: false,
-              trickle: false,
-              stream,
-            })
-
-            peerOutcome.signal(signal) // помещаем в НАШИ уши сигнал того чела, который ток что вошёл(чтобы его слышать) *позвонил на druga signal
-
-            peerOutcome
-              .on('signal', signal => {
-                console.log('123')
-                socket.emit('CLIENT@ROOMS:ANSWER', {
-                  targetUserId: callerUser.id,
-                  roomId,
-                  signal,
-                })
-              })  
-              .on('stream', stream2 => {
-                document.querySelector('audio').srcObject = stream2
-                document.querySelector('audio').play()
-                console.log('STREAM пошёл')
+            // проверка ниже нужна для ситуации, в которой в пустую комнату заходит юзер и
+            // если отправлять свой signal некому, то и обработчики событий создавать незачем, кроме того мы ещё и потеряем signal пользователя и
+            // не сможем создать соединение в обратную сторону с новым юзером, поэтому мы проверяем:
+            // "есть ли в массиве allUsers другой юзер?" и если есть, то устанавливаем с ним связь.
+            if (targetUser) {
+              const peerIncome = new Peer({
+                // peerIncome - это объект, который у каждого юзверя отвечает за передачу голоса (рот)
+                initiator: true,
+                trickle: false,
+                stream,
               })
-          })
 
-          socket.on('SERVER@ROOMS:ANSWER', ({ targetUserId, signal }) => {
-            if (user.id === targetUserId) {
-              peerIncome.signal(signal)
-              console.log('МЫ ОТВЕТИЛИ ЮЗВЕРЮ -->', targetUserId)
+              peerIncome.on('signal', inComeSignal => {
+                // 3. здесь мы отправляем свой inComeSignal другому челу в комнате(передаём сигнал именно ротовой полости)
+                // суть webRTC в данном коде передать рот в уши, а уши обратно в рот и сделать это дважды(для каждого юзера)
+
+                socket.emit('CLIENT@ROOMS:CALL', {
+                  roomId,
+                  inComeSignal,
+                })
+              })
+
+              socket.on('SERVER@ROOMS:CALL', ({ inComeSignal }) => {
+                const peerOutcome = new Peer({
+                  // peerIncome - это объект, который у каждого юзера отвечает за принятие чужого голоса (уши)
+                  initiator: false,
+                  trickle: false,
+                  stream,
+                })
+
+                peerOutcome.signal(inComeSignal) // 4. помещаем в НАШИ уши сигнал другого чела, который ток что вошёл в комнату
+
+                peerOutcome
+                  .on('signal', outComeSignal => {
+                    // 5. передаём обратно в рот первого юзера сигнал от ушей второго
+                    // то есть сначала юзер-1 передал свой рот в уши юзера-2, а теперь юзер-2 с ушей должен обратно в рот юзеру-1 передать сигнал
+                    socket.emit('CLIENT@ROOMS:ANSWER', {
+                      roomId,
+                      outComeSignal,
+                    })
+                  })
+                  .on('stream', stream2 => {
+                    // обработчик, который ловит stream - грубо говоря то, что другой юзер говорит и мы воспроизводим это
+                    document.querySelector('audio').srcObject = stream2
+                    document.querySelector('audio').play()
+                    console.log('STREAM пошёл')
+                  })
+              })
+
+              socket.on('SERVER@ROOMS:ANSWER', ({ outComeSignal }) => {
+                // 6. получаем сигнал с ушей юзера и ниже наконец-то устанавливаем соединение
+                peerIncome.signal(outComeSignal)
+                console.log('Мы ответили юзеру и установили связь!')
+              })
             }
           })
         })
@@ -93,24 +115,9 @@ export const Room: React.FC<RoomProps> = ({ title }) => {
           console.error('Нет доступа к микрофону')
         })
 
-      socket = io('http://localhost:3001') // определили куда отправляем сокет-запросы
-
-      window.socket = socket
-
-      socket.emit('CLIENT@ROOMS:JOIN', {
-        user,
-        roomId,
-      }) // присоединяем текущего юзверя к комнате, в которую он вошёл(на которую кликнул)
-
       socket.on('SERVER@ROOMS:LEAVE', (user: UserData) => {
         setUsers(prev => prev.filter(obj => obj.id !== user.id))
       })
-
-      socket.on('SERVER@ROOMS:JOIN', allUsers => {
-        setUsers(allUsers)
-      }) // получаем ответ от сервера, когда другой юзверь законнектился к комнате
-
-      // setUsers(prev => [...prev, user])
     }
   }, [])
 

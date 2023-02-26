@@ -51,16 +51,18 @@ io.on('connection', socket => {
     Room.update({ speakers }, { where: { id: roomId } })
   })
 
-  socket.on('CLIENT@ROOMS:CALL', ({ user, roomId, signal }) => {
+  // targetUserId - кому звоним(чел, который уже сидел в комнате на момент вхождения нового юзверя)
+  // callerUserId - тот чел, который ток что залетел в хату и хочет коннекта с первым челом
+  socket.on('CLIENT@ROOMS:CALL', ({ roomId, inComeSignal }) => {
     socket.broadcast // отправляем свой сигнал(номер телефона) всем ребятам в комнате(кроме отправителя), что к вам хочет подключиться кто-то(тот самый отправитель)
       .to(`room/${roomId}`)
-      .emit('SERVER@ROOMS:CALL', { user, signal })
+      .emit('SERVER@ROOMS:CALL', { inComeSignal })
   })
 
-  socket.on('CLIENT@ROOMS:ANSWER', ({ targetUserId, roomId, signal }) => {
+  socket.on('CLIENT@ROOMS:ANSWER', ({ roomId, outComeSignal }) => {
     socket.broadcast
       .to(`room/${roomId}`)
-      .emit('SERVER@ROOMS:ANSWER', { targetUserId, signal })
+      .emit('SERVER@ROOMS:ANSWER', { outComeSignal })
   })
 
   socket.on('disconnect', () => {
